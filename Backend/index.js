@@ -2,10 +2,11 @@ import express from "express";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { userModel } from "./Backend/Models/userModel.js";
-import { foodModel } from "./Backend/Models/foodModels.js";
+import cors from "cors";
+import { userModel } from "./Models/userModel.js";
+import { foodModel } from "./Models/foodModels.js";
 import { verifyToken } from "./verifyToken.js";
-import { trackingModel } from "./Backend/Models/trackingModel.js";
+import { trackingModel } from "./Models/trackingModel.js";
 mongoose
   .connect("mongodb://127.0.0.1:27017/Nutrify")
   .then(() => {
@@ -17,6 +18,7 @@ mongoose
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 // Creating Endpoint for registering user
 app.post("/register", (req, res) => {
@@ -29,7 +31,8 @@ app.post("/register", (req, res) => {
           user.password = hpass;
           try {
             let doc = await userModel.create(user);
-            res.status(201).send(doc);
+
+            res.status(201).send({ message: "User Registerd" });
           } catch (error) {
             console.log(err);
             res.status(500).send({ message: "Some Problem" });
@@ -54,7 +57,7 @@ app.post("/login", async (req, res) => {
         if (!err) {
           jwt.sign({ email: userDetails.email }, "aditya", (err, token) => {
             if (!err) {
-              res.send({ token });
+              res.send({ token, message: "User Logged in" });
             } else {
               res.send({ message: "Some Problem" });
             }
