@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
+import { userContext } from "../contexts/UserContext";
 import { Link, useNavigate } from "react-router-dom";
 
 function Login() {
+  const navigate = useNavigate();
+  const loggedInData = useContext(userContext);
   const [userCred, setuserCred] = useState({
     email: "",
     password: "",
@@ -16,7 +19,6 @@ function Login() {
       return { ...prevState, [e.target.name]: e.target.value };
     });
   }
-  const navigate = useNavigate();
   function handleSubmit(e) {
     e.preventDefault();
     console.log(userCred);
@@ -31,7 +33,6 @@ function Login() {
       .then((response) => {
         if (!response.ok) {
           console.log(response);
-          setmsg({ type: "Invalid Credential", text: response.statusText });
         }
         setuserCred(() => {
           return { email: "", password: "" };
@@ -46,9 +47,10 @@ function Login() {
       })
       .then((data) => {
         console.log(data);
+        setmsg({ type: "Sucess", text: data.message });
         if (data.token !== undefined) {
-          setmsg({ type: "Sucess", text: data.message });
           localStorage.setItem("nutrify-user", JSON.stringify(data));
+          loggedInData.setLoggedUser(data);
           navigate("/track");
         }
       })
@@ -56,6 +58,7 @@ function Login() {
         console.log("Fetch error: ", err);
       });
   }
+
   return (
     <>
       <section className="container">

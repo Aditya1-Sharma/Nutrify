@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import cors from "cors";
+import { nanoid } from "nanoid";
 import { userModel } from "./Models/userModel.js";
 import { foodModel } from "./Models/foodModels.js";
 import { verifyToken } from "./verifyToken.js";
@@ -53,15 +54,23 @@ app.post("/login", async (req, res) => {
   try {
     const user = await userModel.findOne({ email: userDetails.email });
     if (user !== null) {
-      bcrypt.compare(userDetails.password, user.password, (err, result) => {
-        if (!err) {
+      bcrypt.compare(userDetails.password, user.password, (err, success) => {
+        if (success == true) {
           jwt.sign({ email: userDetails.email }, "aditya", (err, token) => {
             if (!err) {
-              res.send({ token, message: "User Logged in" });
+              console.log(userDetails);
+              res.send({
+                token,
+                message: "User Logged in",
+                userId: nanoid(),
+                name: user.name,
+              });
             } else {
               res.send({ message: "Some Problem" });
             }
           });
+        } else {
+          res.status(403).send({ message: "Wrong User Credential" });
         }
       });
     } else {
@@ -106,7 +115,7 @@ app.get("/menu/:name", verifyToken, async (req, res) => {
   console.log(name);
   try {
     let food = await foodModel.find({ name });
-    if (food !== null) {
+    if (food.length > 0) {
       res.send(food);
     } else {
       res.status(403).send({ message: "Food Not found" });
